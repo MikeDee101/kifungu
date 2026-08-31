@@ -1,0 +1,25 @@
+# Point the camera at a clause on its own page: establish, light it, cite it.
+name: clause_spotlight
+description: >
+  The core statutory shot. The real page appears, the clause is spotlit through a
+  feathered mask, and the citation stamps in. Durations marked `auto` are derived
+  from the clause's word count via the hold-time rule (spec §4), so a longer
+  clause automatically gets a longer hold rather than an unreadable one.
+profiles: [reel, square]
+scenes:
+  - shot: page_establish
+    dur: 1.6
+    params:
+      drift: 0.03
+  - shot: spotlight
+    overlap: 0.8
+    dur: auto
+    params:
+      dim: 0.22
+      feather_px: 22
+      ramp: 0.45
+  - shot: citation_stamp
+    overlap: 1.2
+    dur: 2.0
+    params:
+      rise: 0.45

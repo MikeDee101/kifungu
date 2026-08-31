@@ -1,0 +1,18 @@
+# A clean keyable element for After Effects, with no endplate and no captions.
+name: clause_broll
+description: >
+  The same clause treatment stripped for use as B-roll under a voiceover.
+  Renders to ProRes 4444 with a genuine alpha channel.
+profiles: [broll]
+scenes:
+  - shot: page_establish
+    dur: 2.0
+    params:
+      drift: 0.02
+      shadow: false
+  - shot: spotlight
+    overlap: 1.0
+    dur: auto
+    params:
+      dim: 0.30
+      feather_px: 26

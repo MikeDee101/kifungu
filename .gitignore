@@ -1,0 +1,29 @@
+# Regenerable corpora and renders (spec §10)
+corpus/
+renders/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# PyInstaller staging
+packaging/_bin/
+packaging/dist/
+packaging/build/
+
+# Source documents are never committed: size, and Kenya Law content licensing.
+# Operators keep their own copy and pin its sha256 in the corpus meta.
+docs/sources/
+
+# OS
+Thumbs.db
+desktop.ini
+.DS_Store

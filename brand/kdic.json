@@ -1,0 +1,47 @@
+{
+  "$comment": [
+    "PROVISIONAL. Colours and the display face were extracted from an internal KDIC",
+    "brand deck (Deposit_Insurance_KDIC_Brand.pptx), not from the brand manual.",
+    "Spec §7 and §14.1 require the exact hexes and the licensed typeface files, in",
+    "writing, before Phase 2 styling is signed off. 'ink' already matches the spec.",
+    "Set provisional=false once the manual has been applied."
+  ],
+  "name": "KDIC (provisional)",
+  "provisional": true,
+
+  "colors": {
+    "primary": "#C55A11",
+    "secondary": "#6B6055",
+    "accent": "#FFC000",
+    "ink": "#1A1A1A",
+    "paper": "#FFF6DE",
+    "dim": "#0B1220",
+    "highlight": "#FFE9B3"
+  },
+
+  "type": {
+    "display": ["Maiandra GD", "Trebuchet MS", "Segoe UI", "sans-serif"],
+    "body": ["Georgia", "Times New Roman", "serif"],
+    "mono": ["Consolas", "Courier New", "monospace"],
+    "gloss": ["Segoe UI", "Trebuchet MS", "sans-serif"]
+  },
+
+  "logo": {
+    "primary": "assets/brand/kdic_primary.svg",
+    "reverse": "assets/brand/kdic_reverse.svg"
+  },
+
+  "safe_areas": {
+    "reel":     { "top": 220, "bottom": 320, "side": 90 },
+    "square":   { "top": 100, "bottom": 140, "side": 90 },
+    "portrait": { "top": 130, "bottom": 190, "side": 90 },
+    "wide":     { "top": 90,  "bottom": 120, "side": 140 },
+    "broll":    { "top": 60,  "bottom": 60,  "side": 60 }
+  },
+
+  "motion": {
+    "default_ease": "out_quint",
+    "stagger": 0.12,
+    "beat": 0.4
+  }
+}

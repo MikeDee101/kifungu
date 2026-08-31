@@ -1,0 +1,109 @@
+name: Release (Windows)
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag to build (must already exist)"
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # the version comes from the tag
+          ref: ${{ github.event.inputs.tag || github.ref }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --extra dev
+
+      - name: Test before shipping
+        run: |
+          uv run ruff check .
+          uv run pytest -q
+        env:
+          # The tests need ffmpeg; the bundled binary is fetched below, so use
+          # the runner's own copy for this step.
+          KIFUNGU_CI: "1"
+
+      - name: Resolve version
+        id: version
+        shell: pwsh
+        run: |
+          $v = (uv run python -c "import kifungu; print(kifungu.__version__)").Trim()
+          "version=$v" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          Write-Host "Building kifungu $v"
+
+      - name: Fetch LGPL ffmpeg
+        shell: pwsh
+        run: |
+          # An LGPL build, deliberately not the GPL/non-free "full" build:
+          # see packaging/NOTICE-thirdparty.md.
+          $url = "https://github.com/GyanD/codexffmpeg/releases/download/8.0/ffmpeg-8.0-essentials_build.zip"
+          New-Item -ItemType Directory -Force packaging/_bin | Out-Null
+          Invoke-WebRequest -Uri $url -OutFile ffmpeg.zip
+          Expand-Archive ffmpeg.zip -DestinationPath ffmpeg_tmp -Force
+          Get-ChildItem -Path ffmpeg_tmp -Recurse -Include ffmpeg.exe,ffprobe.exe |
+            ForEach-Object { Copy-Item $_.FullName packaging/_bin/ }
+          Get-ChildItem packaging/_bin
+
+      - name: Build the portable bundle
+        run: uv run pyinstaller packaging/kifungu.spec --noconfirm --distpath packaging/dist
+
+      - name: Stage ffmpeg alongside the executable
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force packaging/dist/kifungu/_bin | Out-Null
+          Copy-Item packaging/_bin/*.exe packaging/dist/kifungu/_bin/
+
+      - name: Verify the bundle actually runs
+        shell: pwsh
+        run: |
+          # A release that cannot start is worse than no release.
+          & packaging/dist/kifungu/kifungu.exe --version
+          & packaging/dist/kifungu/kifungu.exe shots
+          & packaging/dist/kifungu/kifungu.exe templates
+
+      - name: Package
+        id: package
+        shell: pwsh
+        run: |
+          $name = "kifungu-$($env:VERSION)-win64"
+          Compress-Archive -Path packaging/dist/kifungu/* -DestinationPath "$name.zip" -Force
+          $hash = (Get-FileHash "$name.zip" -Algorithm SHA256).Hash.ToLower()
+          "$hash  $name.zip" | Out-File -FilePath "$name.zip.sha256" -Encoding ascii
+          "name=$name" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          Write-Host "$name.zip  sha256=$hash"
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+
+      - name: Publish the release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.inputs.tag || github.ref_name }}
+          generate_release_notes: true
+          files: |
+            ${{ steps.package.outputs.name }}.zip
+            ${{ steps.package.outputs.name }}.zip.sha256
+          body: |
+            ## Install
+
+            Download `${{ steps.package.outputs.name }}.zip`, unzip it anywhere, and run
+            `kifungu.exe`. No installer, no admin rights, no Python — ffmpeg is bundled.
+
+            Verify the download against the published `.sha256` if you wish.
+
+            Third-party components and their licences: `NOTICE-thirdparty.md` inside the zip.

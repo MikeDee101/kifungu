@@ -1,0 +1,66 @@
+[build-system]
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
+
+[project]
+name = "kifungu"
+description = "Turns institutional documents into broadcast-quality motion graphics."
+readme = "README.md"
+requires-python = ">=3.11"
+license = "AGPL-3.0-or-later"
+license-files = ["LICENSE"]
+authors = [{ name = "Michael Derrick Okoth" }]
+keywords = ["motion-graphics", "statute", "pdf", "skia", "ffmpeg"]
+dynamic = ["version"]
+
+dependencies = [
+    "pymupdf>=1.24",       # AGPL-3.0 — see packaging/NOTICE-thirdparty.md
+    "skia-python>=138",
+    "numpy>=1.26",
+    "pillow>=10",
+    "pydantic>=2.7",
+    "typer>=0.12",
+    "rich>=13",
+    "pyyaml>=6",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "ruff>=0.6", "pyinstaller>=6.10"]
+
+[project.scripts]
+kifungu = "kifungu.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/MikeDee101/kifungu"
+Issues = "https://github.com/MikeDee101/kifungu/issues"
+
+# Version is single-sourced from the git tag, so that `engine_version` written into
+# every Cut and manifest matches the release the operator is actually running.
+# This is what makes the spec's §8.5 stale-Cut detection real. (Fallback for
+# source checkouts with no tags yet.)
+[tool.hatch.version]
+source = "vcs"
+fallback-version = "0.0.0"
+
+[tool.hatch.build.hooks.vcs]
+version-file = "kifungu/_version.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["kifungu"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "W"]
+
+[tool.ruff.lint.per-file-ignores]
+# typer declares CLI options as call-valued defaults; that is the framework's
+# documented idiom, not the mutable-default bug B008 is aimed at.
+"kifungu/cli.py" = ["B008"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+filterwarnings = ["ignore::DeprecationWarning"]
+markers = ["render: exercises the Skia/ffmpeg render path"]
