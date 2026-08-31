@@ -69,6 +69,17 @@ jobs:
           New-Item -ItemType Directory -Force packaging/dist/kifungu/_bin | Out-Null
           Copy-Item packaging/_bin/*.exe packaging/dist/kifungu/_bin/
 
+      - name: Stage the ICU data file beside the executable
+        shell: pwsh
+        run: |
+          # Skia looks for icudtl.dat next to the running executable, but
+          # PyInstaller collects data files into _internal/. Without this copy
+          # Skia falls back to a builtin and prints a loader warning on stderr.
+          Copy-Item packaging/dist/kifungu/_internal/icudtl.dat packaging/dist/kifungu/
+          if (-not (Test-Path packaging/dist/kifungu/icudtl.dat)) {
+            throw "icudtl.dat was not staged beside kifungu.exe"
+          }
+
       - name: Verify the bundle actually runs
         shell: pwsh
         run: |
