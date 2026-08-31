@@ -6,6 +6,11 @@ engine that produced it.
 
 ## Unreleased
 
+## v0.1.0 - 2026-08-31
+
+Phases 0 and 1 of the spec: ingest a statute, find a clause, author a reviewable
+Cut, render it. Walking skeleton plus the authentic-page path.
+
 ### Added
 - Corpus format: page rasters, word geometry in PDF points, node tree, canonical
   text, FTS5 index.
