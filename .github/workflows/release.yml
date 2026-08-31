@@ -30,23 +30,8 @@ jobs:
       - name: Install dependencies
         run: uv sync --extra dev
 
-      - name: Test before shipping
-        run: |
-          uv run ruff check .
-          uv run pytest -q
-        env:
-          # The tests need ffmpeg; the bundled binary is fetched below, so use
-          # the runner's own copy for this step.
-          KIFUNGU_CI: "1"
-
-      - name: Resolve version
-        id: version
-        shell: pwsh
-        run: |
-          $v = (uv run python -c "import kifungu; print(kifungu.__version__)").Trim()
-          "version=$v" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
-          Write-Host "Building kifungu $v"
-
+      # Fetched before the tests run, so the suite exercises the exact ffmpeg
+      # binary that ships in the zip rather than some other build.
       - name: Fetch LGPL ffmpeg
         shell: pwsh
         run: |
@@ -59,6 +44,21 @@ jobs:
           Get-ChildItem -Path ffmpeg_tmp -Recurse -Include ffmpeg.exe,ffprobe.exe |
             ForEach-Object { Copy-Item $_.FullName packaging/_bin/ }
           Get-ChildItem packaging/_bin
+          # Put it on PATH for every later step in this job.
+          "$PWD/packaging/_bin" | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
+
+      - name: Test before shipping
+        run: |
+          uv run ruff check .
+          uv run pytest -q
+
+      - name: Resolve version
+        id: version
+        shell: pwsh
+        run: |
+          $v = (uv run python -c "import kifungu; print(kifungu.__version__)").Trim()
+          "version=$v" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          Write-Host "Building kifungu $v"
 
       - name: Build the portable bundle
         run: uv run pyinstaller packaging/kifungu.spec --noconfirm --distpath packaging/dist
