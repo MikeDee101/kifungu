@@ -46,6 +46,26 @@ If a shot needs to import Skia's text or filter APIs directly, that is a signal
 the abstraction in `render/text.py` or `render/effects.py` is missing something —
 extend those rather than reaching past them.
 
+## Adding a selection style
+
+How the engine points at a clause is a *style*, not a shot, because operators
+want to change the gesture while the rest of the clip stays put. Add one in
+`kifungu/render/selection.py`:
+
+1. subclass `SelectionStyle`, set `name` and `description` (the description is
+   what `kifungu styles` prints, so write it for an operator, not a developer);
+2. implement `draw(sc)`, using `sc.lines` for per-line rects and `sc.union` for
+   the whole clause;
+3. animate from `sc.progress` (0 to 1 as the gesture is drawn) and use
+   `sc.elapsed` for anything that must keep moving during the hold, as the
+   marquee's marching ants do;
+4. take every random value from `sc.rng`, never `random` directly, or renders
+   stop being reproducible;
+5. add it to `STYLES`.
+
+`tests/test_hunt.py` will then check it automatically: the parametrised test
+asserts every registered style actually marks the page.
+
 ## Checklist before tagging
 
 - [ ] `uv run pytest -q` green on Windows

@@ -87,6 +87,31 @@ class Node(BaseModel):
     def word_count(self) -> int:
         return len(self.text.split())
 
+    @property
+    def dominant_page(self) -> int:
+        """The page holding most of this node.
+
+        A clause that runs over a page break starts on one page and finishes on
+        the next. Framing it on whichever page carries the bulk of it shows more
+        of the clause than defaulting to wherever its first word happened to
+        fall.
+        """
+        if not self.lines:
+            return self.page
+        counts: dict[int, int] = {}
+        for line in self.lines:
+            counts[line.page] = counts.get(line.page, 0) + 1
+        return max(counts.items(), key=lambda kv: (kv[1], -kv[0]))[0]
+
+    def page_bbox(self, page: int) -> BBox | None:
+        """Union of this node's lines *on one page*.
+
+        `bbox_union` spans every page the node touches, which for a clause
+        crossing a page break describes a rectangle that exists on neither.
+        Anything positioning a camera or a selection must use this instead.
+        """
+        return union([line.bbox for line in self.lines if line.page == page])
+
 
 class PageGeometry(BaseModel):
     number: int

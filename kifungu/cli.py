@@ -96,6 +96,9 @@ def cut(
     doc: str = typer.Option(..., "--doc"),
     cite: str = typer.Option(..., "--cite", help="Canonical citation, for example s.27(1)."),
     template: str = typer.Option("clause_spotlight", "--template"),
+    style: str | None = typer.Option(
+        None, "--style", help="Selection style; see `kifungu styles`."
+    ),
     profiles: str | None = typer.Option(None, "--profiles", help="Comma-separated."),
     operator: str = typer.Option("", "--operator"),
     out: Path | None = typer.Option(None, "--out"),
@@ -114,6 +117,7 @@ def cut(
             template,
             profiles=[p.strip() for p in profiles.split(",")] if profiles else None,
             operator=operator,
+            style=style,
         )
     except KeyError as error:
         console.print(f"[red]{error}[/red]")
@@ -208,6 +212,20 @@ def templates() -> None:
         entry = load_template(name)
         table.add_row(name, ",".join(entry.profiles), " ".join(entry.description.split())[:60])
     console.print(table)
+
+
+@app.command()
+def styles() -> None:
+    """List the selection styles a Cut can point at a clause with."""
+    from kifungu.render.selection import STYLES
+
+    table = Table(show_header=True, header_style="bold")
+    table.add_column("style", style="cyan")
+    table.add_column("looks like")
+    for name, style in STYLES.items():
+        table.add_row(name, style.description)
+    console.print(table)
+    console.print("  Pick one with [cyan]kifungu cut --style <name>[/cyan].")
 
 
 @app.command()

@@ -37,6 +37,39 @@ def _surface(profile: Profile) -> skia.Surface:
     return skia.Surface(profile.width, profile.height)
 
 
+def build_context(
+    canvas: skia.Canvas,
+    cut: Cut,
+    corpus: Corpus | None,
+    profile: Profile,
+    brand: Brand,
+    t: float,
+    frame_index: int,
+    shots: list,
+    images: dict | None = None,
+) -> RenderContext:
+    """Assemble what the shots may read for one frame."""
+    node = None
+    if corpus is not None and cut.source.citation:
+        try:
+            node = corpus.by_citation(cut.source.citation)
+        except KeyError:
+            node = None
+
+    return RenderContext(
+        canvas=canvas,
+        profile=profile,
+        grid=grid_for(profile, brand),
+        brand=brand,
+        cut=cut,
+        corpus=corpus,
+        t=t,
+        frame=frame_index,
+        node=node,
+        _images=images if images is not None else {},
+    )
+
+
 def render_frame(
     canvas: skia.Canvas,
     cut: Cut,
@@ -48,13 +81,6 @@ def render_frame(
     shots: list,
     images: dict,
 ) -> None:
-    node = None
-    if corpus is not None and cut.source.citation:
-        try:
-            node = corpus.by_citation(cut.source.citation)
-        except KeyError:
-            node = None
-
     if profile.alpha:
         # A keyable element must start genuinely transparent, not on a matte.
         canvas.clear(skia.ColorTRANSPARENT)
@@ -63,18 +89,7 @@ def render_frame(
         # ended would otherwise dim a white frame to grey.
         canvas.clear(color_of(brand.rgba("paper")))
 
-    ctx = RenderContext(
-        canvas=canvas,
-        profile=profile,
-        grid=grid_for(profile, brand),
-        brand=brand,
-        cut=cut,
-        corpus=corpus,
-        t=t,
-        frame=frame_index,
-        node=node,
-        _images=images,
-    )
+    ctx = build_context(canvas, cut, corpus, profile, brand, t, frame_index, shots, images)
 
     live = [(shot, scene) for shot, scene in shots if scene.t_in <= t < scene.t_out]
     for shot, scene in sorted(live, key=lambda pair: pair[0].z_order):

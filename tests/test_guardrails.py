@@ -129,7 +129,7 @@ def test_unknown_shot_is_reported(corpus: Corpus):
 
 def test_planned_shot_reports_as_unimplemented(corpus: Corpus):
     cut = base_cut(corpus)
-    cut.scenes.append(Scene(shot="marker_sweep", t_in=0.0, dur=1.0))
+    cut.scenes.append(Scene(shot="kinetic_typeset", t_in=0.0, dur=1.0))
     problems = [p for p in validate(cut, corpus) if p.rule == "shot"]
     assert any("not implemented yet" in p.message for p in problems)
 

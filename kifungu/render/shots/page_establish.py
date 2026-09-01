@@ -15,7 +15,7 @@ class PageEstablish(Shot):
     requires = frozenset({"page_raster"})
 
     def render(self, ctx: RenderContext, t_local: float) -> None:
-        page = int(self.param("page", ctx.node.page if ctx.node else 1))
+        page = int(self.param("page", ctx.node.dominant_page if ctx.node else 1))
         drift = float(self.param("drift", 0.03))
         shadow = bool(self.param("shadow", True))
 

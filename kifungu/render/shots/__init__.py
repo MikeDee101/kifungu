@@ -9,22 +9,30 @@ from __future__ import annotations
 
 from kifungu.render.shots.base import RenderContext, Shot
 from kifungu.render.shots.citation_stamp import CitationStamp
+from kifungu.render.shots.clause_select import ClauseSelect, MarkerSweep, UnderlineDraw
+from kifungu.render.shots.clause_zoom import ClauseZoom
 from kifungu.render.shots.page_establish import PageEstablish
+from kifungu.render.shots.scroll_hunt import ScrollHunt
 from kifungu.render.shots.spotlight import Spotlight
 
 REGISTRY: dict[str, type[Shot]] = {
-    PageEstablish.name: PageEstablish,
-    Spotlight.name: Spotlight,
-    CitationStamp.name: CitationStamp,
+    shot.name: shot
+    for shot in (
+        ScrollHunt,
+        PageEstablish,
+        ClauseZoom,
+        Spotlight,
+        ClauseSelect,
+        MarkerSweep,
+        UnderlineDraw,
+        CitationStamp,
+    )
 }
 
 # Declared in the spec but not yet implemented. Named here so that authoring a
 # Cut that uses one fails with "not implemented yet" rather than "unknown shot".
 PLANNED: frozenset[str] = frozenset(
     {
-        "scroll_hunt",
-        "marker_sweep",
-        "underline_draw",
         "clause_lift",
         "kinetic_typeset",
         "gloss_flip",
@@ -50,9 +58,14 @@ __all__ = [
     "PLANNED",
     "REGISTRY",
     "CitationStamp",
+    "ClauseSelect",
+    "ClauseZoom",
+    "MarkerSweep",
     "PageEstablish",
     "RenderContext",
+    "ScrollHunt",
     "Shot",
     "Spotlight",
+    "UnderlineDraw",
     "get",
 ]

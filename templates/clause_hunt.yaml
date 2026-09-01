@@ -1,0 +1,36 @@
+# The full gesture: open on the cover, race down the Act, land, push in, select.
+name: clause_hunt
+description: >
+  Opens on the cover of the Act and scrolls down through the pages, decelerating
+  onto the one holding the clause. The page settles, the camera pushes in on the
+  clause itself, and the selection is drawn in whichever style the operator
+  picked. Set the style with `--style`, or per scene via params.style.
+profiles: [reel, square]
+scenes:
+  - shot: scroll_hunt
+    dur: 2.2
+    params:
+      from_page: 1
+      ease: out_quint
+      blur_trail: true
+  - shot: page_establish
+    overlap: 0.35
+    dur: 1.2
+    params:
+      drift: 0.02
+  - shot: clause_zoom
+    overlap: 0.5
+    dur: 1.3
+    params:
+      ease: in_out_cubic
+  - shot: clause_select
+    overlap: 0.35
+    dur: auto
+    params:
+      # Only the style is named here. Each style carries its own tuning, so a
+      # highlighter's low alpha does not leak onto a pen stroke when the
+      # operator switches with --style.
+      style: marker_sweep
+  - shot: citation_stamp
+    overlap: 1.4
+    dur: 2.0

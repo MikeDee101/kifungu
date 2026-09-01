@@ -22,6 +22,20 @@ packaging/build/
 # Source documents are never committed: size, and Kenya Law content licensing.
 # Operators keep their own copy and pin its sha256 in the corpus meta.
 docs/sources/
+*.pdf
+!tests/fixtures/*.pdf
+
+# Authored Cuts carry the verbatim statutory text they quote. They are the
+# reviewable artefacts and belong in an institution's own repository, not in
+# this public engine repo, whose NOTICE states that it ships no statutory text.
+cuts/*.json
+
+# Brand assets (logos, licensed typefaces) are supplied locally under their own
+# licences and must not be redistributed from this public repository.
+assets/brand/
+*.jpg
+*.jpeg
+Logo*.png
 
 # OS
 Thumbs.db

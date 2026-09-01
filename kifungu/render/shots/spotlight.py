@@ -24,7 +24,8 @@ class Spotlight(Shot):
         ramp_seconds = float(self.param("ramp", 0.45))
         pad = float(self.param("pad_px", 6.0))
 
-        image = ctx.page_image(ctx.node.page)
+        page = ctx.node.dominant_page
+        image = ctx.page_image(page)
         # Same headroom as page_establish, so the page does not jump at the handoff.
         box = fitted_page_box(
             ctx, image, drift=float(self.param("drift", 0.03)),
@@ -36,7 +37,7 @@ class Spotlight(Shot):
         holes = [
             ctx.to_pixels(line.bbox, line.page, scale, box.left(), box.top()).makeOutset(pad, pad)
             for line in ctx.node.lines
-            if line.page == ctx.node.page
+            if line.page == page
         ]
 
         # Eased ramp in, and back out over the tail, so it is never a hard cut.

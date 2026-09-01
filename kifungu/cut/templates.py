@@ -24,6 +24,10 @@ from kifungu.corpus import Corpus
 from kifungu.cut.schema import Cut, Scene, Source
 from kifungu.cut.validate import hold_time_required
 from kifungu.platform import bundle_dir
+from kifungu.render import selection
+
+# Shots whose look a --style override applies to.
+SELECTION_SHOTS = frozenset({"clause_select", "marker_sweep", "underline_draw"})
 
 
 class TemplateScene(BaseModel):
@@ -39,7 +43,9 @@ class Template(BaseModel):
     profiles: list[str] = Field(default_factory=lambda: ["reel"])
     scenes: list[TemplateScene]
 
-    def build_scenes(self, word_count: int, gloss_words: int = 0) -> list[Scene]:
+    def build_scenes(
+        self, word_count: int, gloss_words: int = 0, style: str | None = None
+    ) -> list[Scene]:
         scenes: list[Scene] = []
         cursor = 0.0
         for entry in self.scenes:
@@ -53,7 +59,10 @@ class Template(BaseModel):
                 dur = round(hold_time_required(count), 2)
             else:
                 dur = float(entry.dur)
-            scenes.append(Scene(shot=entry.shot, t_in=round(t_in, 2), dur=dur, params=entry.params))
+            params = dict(entry.params)
+            if style is not None and entry.shot in SELECTION_SHOTS:
+                params["style"] = style
+            scenes.append(Scene(shot=entry.shot, t_in=round(t_in, 2), dur=dur, params=params))
             cursor = t_in + dur
         return scenes
 
@@ -98,9 +107,15 @@ def cut_from_template(
     operator: str = "",
     cut_id: str | None = None,
     brand: str = "kdic",
+    style: str | None = None,
 ) -> Cut:
     node = corpus.by_citation(citation)
     template = load_template(template_name)
+
+    if style is not None:
+        # Fail here rather than at render time: the operator is choosing a look
+        # now, and a typo should say so now.
+        selection.get(style)
 
     source = Source(
         doc_id=corpus.meta.doc_id,
@@ -121,5 +136,5 @@ def cut_from_template(
         brand=brand,
         source=source,
         profiles=profiles or template.profiles,
-        scenes=template.build_scenes(source.word_count),
+        scenes=template.build_scenes(source.word_count, style=style),
     )
